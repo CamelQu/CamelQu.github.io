@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java对象的状态与可变性 | LigtcodeClub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="问题引入近期再看Java的多线程处理，其中有两对概念需要进行一下总结：有状态和无状态，可变类和不可变类。 首先要明确一点，这两对概念都是针对类实例化都的对象而言，因为对象是动态的，而类可以认为是一种数据模板。 有状态对象与无状态对象有状态是指bean可以保存数据，是非线程安全的。而无状态是指bean不能保存数据，是线程安全的。 在这个概念中，数据既可以指实例变量，又可以指其他类的对象引用。 实际上">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java对象的状态与可变性">
+<meta property="og:url" content="http:&#x2F;&#x2F;lightcode.club&#x2F;2016&#x2F;06&#x2F;07&#x2F;java_state_immutable&#x2F;index.html">
+<meta property="og:site_name" content="LigtcodeClub">
+<meta property="og:description" content="问题引入近期再看Java的多线程处理，其中有两对概念需要进行一下总结：有状态和无状态，可变类和不可变类。 首先要明确一点，这两对概念都是针对类实例化都的对象而言，因为对象是动态的，而类可以认为是一种数据模板。 有状态对象与无状态对象有状态是指bean可以保存数据，是非线程安全的。而无状态是指bean不能保存数据，是线程安全的。 在这个概念中，数据既可以指实例变量，又可以指其他类的对象引用。 实际上">
+<meta property="og:locale" content="zh">
+<meta property="og:updated_time" content="2020-12-01T12:38:09.377Z">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="LigtcodeClub" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    
+    <div id="header-inner" class="inner">
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://lightcode.club"></form>
+      </div>
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">归档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      
+    </div>
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LigtcodeClub</a>
+      </h1>
+      
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-java_state_immutable" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/06/07/java_state_immutable/" class="article-date">
+  <time datetime="2016-06-07T14:45:00.000Z" itemprop="datePublished">2016-06-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java对象的状态与可变性
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <!-- Table of Contents -->
+        
+        <h2 id="问题引入"><a href="#问题引入" class="headerlink" title="问题引入"></a>问题引入</h2><p>近期再看Java的多线程处理，其中有两对概念需要进行一下总结：有状态和无状态，可变类和不可变类。</p>
+<p>首先要明确一点，这两对概念都是针对类实例化都的对象而言，因为对象是动态的，而类可以认为是一种数据模板。</p>
+<h2 id="有状态对象与无状态对象"><a href="#有状态对象与无状态对象" class="headerlink" title="有状态对象与无状态对象"></a>有状态对象与无状态对象</h2><p>有状态是指bean可以保存数据，是非线程安全的。而无状态是指bean不能保存数据，是线程安全的。</p>
+<p>在这个概念中，数据既可以指实例变量，又可以指<font color="red">其他类的对象引用</font>。</p>
+<p>实际上在工作中对对象的处理基本上都是使用spring框架，在spring中，类实例化的默认方式都是单例（singleton），这种方式生成的单例对象都是无状态的，这里由spring处理多线程问题（例如使用TreadLocal）。但是要注意：<font color="red">这并不是说单例就是无状态的，单例是可以为有状态的</font>。同理，scope为原型（Prototype）的类实例化后就是有状态的。</p>
+<p>在日常工作中，经常会按照MVC划分代码层次。一般而言，Service与Dao层的类都是无状态的，即仅使用一次。</p>
+<h2 id="可变对象与不可变对象"><a href="#可变对象与不可变对象" class="headerlink" title="可变对象与不可变对象"></a>可变对象与不可变对象</h2><p>首先看下Oracle对于不可变对象（immutable object）的定义与示例。</p>
+<blockquote>
+<p>当一个对象构建好后其状态不再会被改变，那么这个对象就可以被称作不可变对象。最大程度地依靠不可变对象是在编写简单可依赖代码的一个被广泛接受的成熟策略。</p>
+</blockquote>
+<blockquote>
+<p>不可变对象在并发应用当中十分有用。鉴于它们的状态不能被改变，不可变对象不会被线程干扰毁坏或者被观察时处于不一致的状态。</p>
+</blockquote>
+<blockquote>
+<p>程序员通常不愿意使用不可变对象，因为他们担心用对象的创建替换对象的更新的成本。对象创建的影响通常被过高的估计，并且可以被使用不可变对象相关的一些效率进行补偿。这包括由于垃圾回收而降低的开销以及去除了为保护可变对象不受污染的代码。</p>
+</blockquote>
+<p>这段<a href="https://docs.oracle.com/javase/tutorial/essential/concurrency/immutable.html" target="_blank" rel="noopener">说明</a>不仅给出了不可变对象的定义，还指出了不可变对象的优点：多线程并发下的同步性。根据Oracle中给出的不可变对象的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">public class SynchronizedRGB &#123;</span><br><span class="line"></span><br><span class="line">    // Values must be between 0 and 255.</span><br><span class="line">    private int red;</span><br><span class="line">    private int green;</span><br><span class="line">    private int blue;</span><br><span class="line">    private String name;</span><br><span class="line"></span><br><span class="line">    private void check(int red,</span><br><span class="line">                       int green,</span><br><span class="line">                       int blue) &#123;</span><br><span class="line">        if (red &lt; 0 || red &gt; 255</span><br><span class="line">            || green &lt; 0 || green &gt; 255</span><br><span class="line">            || blue &lt; 0 || blue &gt; 255) &#123;</span><br><span class="line">            throw new IllegalArgumentException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public SynchronizedRGB(int red,</span><br><span class="line">                           int green,</span><br><span class="line">                           int blue,</span><br><span class="line">                           String name) &#123;</span><br><span class="line">        check(red, green, blue);</span><br><span class="line">        this.red = red;</span><br><span class="line">        this.green = green;</span><br><span class="line">        this.blue = blue;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void set(int red,</span><br><span class="line">                    int green,</span><br><span class="line">                    int blue,</span><br><span class="line">                    String name) &#123;</span><br><span class="line">        check(red, green, blue);</span><br><span class="line">        synchronized (this) &#123;</span><br><span class="line">            this.red = red;</span><br><span class="line">            this.green = green;</span><br><span class="line">            this.blue = blue;</span><br><span class="line">            this.name = name;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public synchronized int getRGB() &#123;</span><br><span class="line">        return ((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public synchronized String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public synchronized void invert() &#123;</span><br><span class="line">        red = 255 - red;</span><br><span class="line">        green = 255 - green;</span><br><span class="line">        blue = 255 - blue;</span><br><span class="line">        name = &quot;Inverse of &quot; + name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上述的SynchronizedRGB中，存在多线程的并发问题。例如在执行<code>getRGB()</code>与<code>getName()</code>之中对这个类的对象进行改变后，就有可能得到不同的结果。在Oracle官方教程中给出的<a href="https://docs.oracle.com/javase/tutorial/essential/concurrency/syncrgb.html" target="_blank" rel="noopener">解决办法</a>是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">synchronized (color) &#123;</span><br><span class="line">    int myColorInt = color.getRGB();</span><br><span class="line">    String myColorName = color.getName();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而使用不可变对象处理上述场景时，可以编写如下的类：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">final public class ImmutableRGB &#123;</span><br><span class="line"></span><br><span class="line">    // Values must be between 0 and 255.</span><br><span class="line">    final private int red;</span><br><span class="line">    final private int green;</span><br><span class="line">    final private int blue;</span><br><span class="line">    final private String name;</span><br><span class="line"></span><br><span class="line">    private void check(int red,</span><br><span class="line">                       int green,</span><br><span class="line">                       int blue) &#123;</span><br><span class="line">        if (red &lt; 0 || red &gt; 255</span><br><span class="line">            || green &lt; 0 || green &gt; 255</span><br><span class="line">            || blue &lt; 0 || blue &gt; 255) &#123;</span><br><span class="line">            throw new IllegalArgumentException();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public ImmutableRGB(int red,</span><br><span class="line">                        int green,</span><br><span class="line">                        int blue,</span><br><span class="line">                        String name) &#123;</span><br><span class="line">        check(red, green, blue);</span><br><span class="line">        this.red = red;</span><br><span class="line">        this.green = green;</span><br><span class="line">        this.blue = blue;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    public int getRGB() &#123;</span><br><span class="line">        return ((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getName() &#123;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public ImmutableRGB invert() &#123;</span><br><span class="line">        return new ImmutableRGB(255 - red,</span><br><span class="line">                       255 - green,</span><br><span class="line">                       255 - blue,</span><br><span class="line">                       &quot;Inverse of &quot; + name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>ImmutableRGB</code>中，很明显可以看出，所有的成员变量都定义为final类型，并且去除了改变成员变量值的方法的synchronized属性。</p>
+<p>尽管Oracle推荐使用不可变对象存储数据，但是显而易见的是，这会产生大量的无用对象，从而加重垃圾回收的负担。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://lightcode.club/2016/06/07/java_state_immutable/" data-id="cki619de40003sile3h63ekpb" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+ <script src="/jquery/jquery.min.js"></script>
+  <div id="random_posts">
+    <h2>推荐文章</h2>
+    <div class="random_posts_ul">
+      <script>
+          var random_count =4
+          var site = {BASE_URI:'/'};
+          function load_random_posts(obj) {
+              var arr=site.posts;
+              if (!obj) return;
+              // var count = $(obj).attr('data-count') || 6;
+              for (var i, tmp, n = arr.length; n; i = Math.floor(Math.random() * n), tmp = arr[--n], arr[n] = arr[i], arr[i] = tmp);
+              arr = arr.slice(0, random_count);
+              var html = '<ul>';
+            
+              for(var j=0;j<arr.length;j++){
+                var item=arr[j];
+                html += '<li><strong>' + 
+                item.date + ':&nbsp;&nbsp;<a href="' + (site.BASE_URI+item.uri) + '">' + 
+                (item.title || item.uri) + '</a></strong>';
+                if(item.excerpt){
+                  html +='<div class="post-excerpt">'+item.excerpt+'</div>';
+                }
+                html +='</li>';
+                
+              }
+              $(obj).html(html + '</ul>');
+          }
+          $('.random_posts_ul').each(function () {
+              var c = this;
+              if (!site.posts || !site.posts.length){
+                  $.getJSON(site.BASE_URI + 'js/posts.js',function(json){site.posts = json;load_random_posts(c)});
+              } 
+               else{
+                load_random_posts(c);
+              }
+          });
+      </script>
+    </div>
+  </div>
+
+    
+<nav id="article-nav">
+  
+    <a href="/2016/06/12/centos_install_mysql/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          在CentOS上安装MySQL
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+ 
+     
+  
+
+</section>
+           
+    <aside id="sidebar">
+  
+    
+
+  
+    
+    <div class="widget-wrap">
+    
+      <div class="widget" id="toc-widget-fixed">
+      
+        <strong class="toc-title">文章目录</strong>
+        <div class="toc-widget-list">
+              <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#问题引入"><span class="toc-number">1.</span> <span class="toc-text">问题引入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有状态对象与无状态对象"><span class="toc-number">2.</span> <span class="toc-text">有状态对象与无状态对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#可变对象与不可变对象"><span class="toc-number">3.</span> <span class="toc-text">可变对象与不可变对象</span></a></li></ol>
+          </div>
+      </div>
+    </div>
+
+  
+    
+
+  
+    
+  
+    
+  
+    
+
+  
+    
+  
+    <!--微信公众号二维码-->
+
+
+  
+</aside>
+
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-left">
+      &copy; 2014 - 2020 Camel Qu&nbsp;|&nbsp;
+      主题 <a href="https://github.com/giscafer/hexo-theme-cafe/" target="_blank">Cafe</a>
+    </div>
+     <div id="footer-right">
+      联系方式&nbsp;|&nbsp;youemail@outlook.com
+    </div>
+  </div>
+</footer>
+ <script src="/jquery/jquery.min.js"></script>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">归档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    <img class="back-to-top-btn" src="/images/fly-to-top.png"/>
+<script>
+// Elevator script included on the page, already.
+window.onload = function() {
+  var elevator = new Elevator({
+    selector:'.back-to-top-btn',
+    element: document.querySelector('.back-to-top-btn'),
+    duration: 1000 // milliseconds
+  });
+}
+</script>
+      
+
+  
+    <script>
+      var cloudTieConfig = {
+        url: document.location.href, 
+        sourceId: "",
+        productKey: "e2fb4051c49842688ce669e634bc983f",
+        target: "cloud-tie-wrapper"
+      };
+    </script>
+    <script src="https://img1.ws.126.net/f2e/tie/yun/sdk/loader.js"></script>
+    
+
+  
+
+
+
+
+
+
+
+<!-- author:forvoid begin -->
+<!-- author:forvoid begin -->
+
+<!-- author:forvoid end -->
+
+<!-- author:forvoid end -->
+
+
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      })
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      })
+    </script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/mathjax/MathJax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+ <script src="/js/is.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+<script src="/js/elevator.js"></script>
+  </div>
+</body>
+</html>
