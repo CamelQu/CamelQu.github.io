@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="LigtcodeClub">
 <meta property="og:description" content="背景近期换了新的工作，新公司的主要技术栈使用的Go，当然我也是为了挑战自身，从之前的Java转型到go，来看看更广阔的技术世界。写一些学习心得来记录自己的总结和反思。 结构体方法这是初学go的时候，最让人困惑的地方。一个方法既有入参，又有返回值，为什么还来了一个接受者。但无论如何，go的函数支持这种格式，struct+func的这种方法，似乎等价于Java中的class里的method。 1234">
 <meta property="og:locale" content="zh">
-<meta property="og:updated_time" content="2020-12-01T13:42:44.041Z">
+<meta property="og:updated_time" content="2020-12-02T03:13:39.871Z">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="LigtcodeClub" type="application/atom+xml">
@@ -98,6 +98,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	&quot;qyd/first/eg/learning&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">	student := learning.Student&#123;&quot;Camel&quot;, &quot;0001&quot;&#125;</span><br><span class="line">	fmt.Println(student)</span><br><span class="line">	student.SetName(&quot;Camel2&quot;)</span><br><span class="line">	fmt.Println(student)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="值传递"><a href="#值传递" class="headerlink" title="值传递"></a>值传递</h2><p>go仅支持值传递，这是个好事，也不是个好事。<br>java中基于基本类型和复合类型分为值传递和引用传递，go中如果要实现引用传递修改参数内容，可以明确使用指针，这确实比较清晰。<br>说这个不是好事，无非在一些场景，你需要仔细考虑使用指针的场景。例如上述的结构体函数，在进行修改等动作的时候，是否要影响结构体本身的参数值，是在开发的时候要斟酌的。</p>
+<p>另外要补充的一点，基本类型的值不可能为null，也就是不能为nil。nil只能赋值给pointers, interfaces, channels, slices, maps and function，表示一种还没有初始化的状态。</p>
 <h2 id="go工具箱"><a href="#go工具箱" class="headerlink" title="go工具箱"></a>go工具箱</h2><p>go是使用多种命令来进行项目的构建，包的引用等。目前使用比较多的是go get，go build，go install，go mod。而且很神奇的一点，go mod可以灵活依赖任意go module，并且可以随意依赖github上的代码，十分刺激，简直天生开源。</p>
 <h2 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h2><p>可能目前写go的感触还不是很深，现在只能用面向过程的编程方式来理解go的玩法。似乎结构体可以比较好的解决这个问题，但是代码写起来还是挺怪的。（通过定义结构体的方式来定义出来java里的各种service？）</p>
 <p>包括注入等玩法，似乎也支持，只是自己没有学习的特别深入。</p>
@@ -105,7 +106,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://lightcode.club/2020/12/01/go_ch1/" data-id="cki61z1ef0004qllef3fscm1n" class="article-share-link">分享</a>
+      <a data-url="http://lightcode.club/2020/12/01/go_ch1/" data-id="cki6u7cpd0000fsle6pa26f3e" class="article-share-link">分享</a>
       
       
       
